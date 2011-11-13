@@ -17,7 +17,7 @@
 import os
 import codecs
 import zipfile
-import glob
+import tempfile
 
 
 def main(source, destination, **options):
@@ -28,17 +28,17 @@ def main(source, destination, **options):
              for i in os.listdir(source)]
     options['names'] = names
 
+    tempdir = tempfile.mkdtemp()
     ## create directory structure
-    os.mkdir(destination)
-    os.mkdir(destination + "/META-INF")
-    os.mkdir(destination + "/content")
+    os.mkdir(tempdir + "/META-INF")
+    os.mkdir(tempdir + "/content")
 
     ## create hard coded files
-    out = open(destination + "/mimetype", "w")
+    out = open(tempdir + "/mimetype", "w")
     out.write("application/epub+zip")
     out.close()
 
-    out = open(destination + "/META-INF/container.xml", "w")
+    out = open(tempdir + "/META-INF/container.xml", "w")
     out.write("""<?xml version='1.0' encoding='utf-8'?>
 <container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
   <rootfiles>
@@ -54,19 +54,19 @@ def main(source, destination, **options):
 
     ## start with content/00_content.opf
     template = env.get_template("00_content.opf")
-    out = file(destination + "/content/00_content.opf", "w")
+    out = file(tempdir + "/content/00_content.opf", "w")
     out.write(template.render(options))
     out.close()
 
     ## then content/00_toc.ncx
     template = env.get_template("00_toc.ncx")
-    out = file(destination + "/content/00_toc.ncx", "w")
+    out = file(tempdir + "/content/00_toc.ncx", "w")
     out.write(template.render(options))
     out.close()
 
     ## and the style
     template = env.get_template("00_stylesheet.css")
-    out = file(destination + "/content/00_stylesheet.css", "w")
+    out = file(tempdir + "/content/00_stylesheet.css", "w")
     out.write(template.render(options))
     out.close()
 
@@ -77,16 +77,16 @@ def main(source, destination, **options):
         content = codecs.open(source + "/" + n + ".txt", encoding='utf-8').read()
         lines = content.split("\n\n")
         info['lines'] = lines
-        out = codecs.open(destination + "/content/" + n + ".html", "w", encoding='utf-8')
+        out = codecs.open(tempdir + "/content/" + n + ".html", "w", encoding='utf-8')
         out.write(template.render(info))
         out.close()
 
-    ## finally zip everything into the destination.epub
-    out = zipfile.ZipFile(destination + ".epub", "w", zipfile.ZIP_DEFLATED)
-    out.write(destination + "/mimetype", "mimetype", zipfile.ZIP_STORED)
-    out.write(destination + "/META-INF/container.xml", "META-INF/container.xml", zipfile.ZIP_DEFLATED)
+    ## finally zip everything into the destination
+    out = zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED)
+    out.write(tempdir + "/mimetype", "mimetype", zipfile.ZIP_STORED)
+    out.write(tempdir + "/META-INF/container.xml", "META-INF/container.xml", zipfile.ZIP_DEFLATED)
     for name in ["00_content.opf", "00_stylesheet.css"] + [i + ".html" for i in names] + ["00_toc.ncx"]:
-        out.write(destination + "/content/" + name, "content/" + name, zipfile.ZIP_DEFLATED)
+        out.write(tempdir + "/content/" + name, "content/" + name, zipfile.ZIP_DEFLATED)
         
     out.close()
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('source', type=str,
                         help='the directory that holds the text files')
     parser.add_argument('destination', type=str,
-                        help='the name of the epub document, excluded extension')
+                        help='the name of the epub document')
     parser.add_argument('--type')
     parser.add_argument('--title')
     parser.add_argument('--creator')
