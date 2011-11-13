@@ -45,13 +45,14 @@ def main(source, destination, **options):
 
     ## use templates to produce rest of output
 
-    ## start with content.opf
+    ## start with 00_content.opf
 
     ## then convert each of the files
     for n in names:
         pass
 
     ## finally zip everything into the destination.epub
+    zip = zipfile.ZipFile(destination + ".epub")
 
 
 if __name__ == '__main__':
