@@ -15,44 +15,80 @@
 # copyright 2011 Mario Frasca
 
 import os
+import codecs
+import zipfile
+import glob
 
 
 def main(source, destination, **options):
     """translate the files to epub
     """
 
-    names = os.listdir(source)
+    names = [".".join(i.split('.')[:-1]) 
+             for i in os.listdir(source)]
+    options['names'] = names
 
     ## create directory structure
     os.mkdir(destination)
-    os.mkdir(destination + "/META_INF")
+    os.mkdir(destination + "/META-INF")
     os.mkdir(destination + "/content")
 
     ## create hard coded files
-    f = open(destination + "/mimetype", "w")
-    f.write("application/epub+zip")
-    f.close()
+    out = open(destination + "/mimetype", "w")
+    out.write("application/epub+zip")
+    out.close()
 
-    f = open(destination + "/META_INF/container.xml", "w")
-    f.write("""<?xml version='1.0' encoding='utf-8'?>
+    out = open(destination + "/META-INF/container.xml", "w")
+    out.write("""<?xml version='1.0' encoding='utf-8'?>
 <container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
   <rootfiles>
     <rootfile media-type="application/oebps-package+xml" full-path="content/00_content.opf"/>
   </rootfiles>
 </container>
 """)
-    f.close()
+    out.close()
 
     ## use templates to produce rest of output
+    from jinja2 import Environment, PackageLoader
+    env = Environment(loader=PackageLoader('__main__', "templates"))
 
-    ## start with 00_content.opf
+    ## start with content/00_content.opf
+    template = env.get_template("00_content.opf")
+    out = file(destination + "/content/00_content.opf", "w")
+    out.write(template.render(options))
+    out.close()
+
+    ## then content/00_toc.ncx
+    template = env.get_template("00_toc.ncx")
+    out = file(destination + "/content/00_toc.ncx", "w")
+    out.write(template.render(options))
+    out.close()
+
+    ## and the style
+    template = env.get_template("00_stylesheet.css")
+    out = file(destination + "/content/00_stylesheet.css", "w")
+    out.write(template.render(options))
+    out.close()
 
     ## then convert each of the files
+    template = env.get_template("item.html")
     for n in names:
-        pass
+        info = {'title': n}
+        content = codecs.open(source + "/" + n + ".txt", encoding='utf-8').read()
+        lines = content.split("\n\n")
+        info['lines'] = lines
+        out = codecs.open(destination + "/content/" + n + ".html", "w", encoding='utf-8')
+        out.write(template.render(info))
+        out.close()
 
     ## finally zip everything into the destination.epub
-    zip = zipfile.ZipFile(destination + ".epub")
+    out = zipfile.ZipFile(destination + ".epub", "w", zipfile.ZIP_DEFLATED)
+    out.write(destination + "/mimetype", "mimetype", zipfile.ZIP_STORED)
+    out.write(destination + "/META-INF/container.xml", "META-INF/container.xml", zipfile.ZIP_DEFLATED)
+    for name in ["00_content.opf", "00_stylesheet.css"] + [i + ".html" for i in names] + ["00_toc.ncx"]:
+        out.write(destination + "/content/" + name, "content/" + name, zipfile.ZIP_DEFLATED)
+        
+    out.close()
 
 
 if __name__ == '__main__':

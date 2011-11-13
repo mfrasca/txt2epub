@@ -13,6 +13,6 @@
     <text>{{ author }}</text>
   </docAuthor>
   <navMap>{% for i in range(names|count) %}
-    <navPoint playOrder="{{ i }}" id="navpoint001" class="{{ 'navpoint-level-%04d' % i }}"> <navLabel> <text>{{ name[i] }}</text> </navLabel> <content src="{{ names[i] }}.html"/> </navPoint>{% endfor %}
+    <navPoint playOrder="{{ i }}" id="{{ 'navpoint%04d' % i }}" class="{{ 'navpoint-level-%04d' % i }}"> <navLabel> <text>{{ names[i] }}</text> </navLabel> <content src="{{ names[i] }}.html"/> </navPoint>{% endfor %}
   </navMap>
 </ncx>

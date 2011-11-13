@@ -13,7 +13,7 @@
   </metadata>
   <manifest>
     <item href="00_stylesheet.css" id="css" media-type="text/css"/>{% for name in names %}
-    <item href="{{ name }} .html" id="{{ name }}" media-type="application/xhtml+xml"/>{% endfor %}
+    <item href="{{ name }}.html" id="{{ name }}" media-type="application/xhtml+xml"/>{% endfor %}
     <item href="00_toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
   </manifest>
   <spine toc="ncx">{% for name in names %}
