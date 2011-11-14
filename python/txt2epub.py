@@ -14,18 +14,20 @@
 #
 # copyright 2011 Mario Frasca
 
-import os
+import os, os.path
 import codecs
 import zipfile
 import tempfile
 
 
-def main(source, destination, **options):
+def main(destination, sources, **options):
     """translate the files to epub
     """
 
-    names = [".".join(i.split('.')[:-1]) 
-             for i in os.listdir(source)]
+    names = [os.path.basename(".".join(i.split('.')[:-1]))
+             for i in sources]
+    types = [".".join(i.split('.')[-1]) 
+             for i in sources]
     options['names'] = names
 
     tempdir = tempfile.mkdtemp()
@@ -72,12 +74,12 @@ def main(source, destination, **options):
 
     ## then convert each of the files
     template = env.get_template("item.html")
-    for n in names:
-        info = {'title': n}
-        content = codecs.open(source + "/" + n + ".txt", encoding='utf-8').read()
+    for short, full in zip(names, sources):
+        info = {'title': short}
+        content = codecs.open(full, encoding='utf-8').read()
         lines = content.split("\n\n")
         info['lines'] = lines
-        out = codecs.open(tempdir + "/content/" + n + ".html", "w", encoding='utf-8')
+        out = codecs.open(tempdir + "/content/" + short + ".html", "w", encoding='utf-8')
         out.write(template.render(info))
         out.close()
 
@@ -95,10 +97,10 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='convert text files to epub document.')
-    parser.add_argument('source', type=str,
-                        help='the directory that holds the text files')
     parser.add_argument('destination', type=str,
                         help='the name of the epub document')
+    parser.add_argument('sources', type=str, nargs='+',
+                        help='the text files to include in the epub')
     parser.add_argument('--type')
     parser.add_argument('--title')
     parser.add_argument('--creator')
