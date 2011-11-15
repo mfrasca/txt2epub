@@ -18,6 +18,7 @@ import os, os.path
 import codecs
 import zipfile
 import tempfile
+from docutils.core import publish_string
 
 
 def encode_entities(text):
@@ -34,7 +35,7 @@ def main(destination, sources, **options):
 
     names = [os.path.basename(".".join(i.split('.')[:-1])).replace(" ", "_")
              for i in sources]
-    types = [".".join(i.split('.')[-1]) 
+    types = [i.split('.')[-1].lower()
              for i in sources]
     options['names'] = names
 
@@ -87,14 +88,18 @@ def main(destination, sources, **options):
     else:
         template = env.get_template("item.html")
         split_on = '\n\n'
-    for short, full in zip(names, sources):
+    for short, full, this_type in zip(names, sources, types):
         info = {'title': short}
         content = codecs.open(full, encoding='utf-8').read()
-        content = encode_entities(content)
-        lines = content.split(split_on)
-        info['lines'] = lines
+        if this_type == "rst":
+            text = publish_string(content, writer_name="html")
+        else:
+            content = encode_entities(content)
+            lines = content.split(split_on)
+            info['lines'] = lines
+            text = template.render(info)
         out = codecs.open(tempdir + "/content/" + short + ".html", "w", encoding='utf-8')
-        out.write(template.render(info))
+        out.write(text)
         out.close()
 
     ## finally zip everything into the destination
