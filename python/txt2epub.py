@@ -20,11 +20,19 @@ import zipfile
 import tempfile
 
 
+def encode_entities(text):
+    return text.replace(
+        "&", "&amp;").replace(
+        ">", "&gt;").replace(
+        "<", "&lt;").replace(
+        "\014", "")
+
+
 def main(destination, sources, **options):
     """translate the files to epub
     """
 
-    names = [os.path.basename(".".join(i.split('.')[:-1]))
+    names = [os.path.basename(".".join(i.split('.')[:-1])).replace(" ", "_")
              for i in sources]
     types = [".".join(i.split('.')[-1]) 
              for i in sources]
@@ -73,11 +81,17 @@ def main(destination, sources, **options):
     out.close()
 
     ## then convert each of the files
-    template = env.get_template("item.html")
+    if options['keep_line_breaks']:
+        template = env.get_template("item-br.html")
+        split_on = '\n'
+    else:
+        template = env.get_template("item.html")
+        split_on = '\n\n'
     for short, full in zip(names, sources):
         info = {'title': short}
         content = codecs.open(full, encoding='utf-8').read()
-        lines = content.split("\n\n")
+        content = encode_entities(content)
+        lines = content.split(split_on)
         info['lines'] = lines
         out = codecs.open(tempdir + "/content/" + short + ".html", "w", encoding='utf-8')
         out.write(template.render(info))
@@ -94,21 +108,22 @@ def main(destination, sources, **options):
 
 
 if __name__ == '__main__':
-    import argparse
+    import argparse, datetime, uuid
 
     parser = argparse.ArgumentParser(description='convert text files to epub document.')
     parser.add_argument('destination', type=str,
                         help='the name of the epub document')
     parser.add_argument('sources', type=str, nargs='+',
                         help='the text files to include in the epub')
+    parser.add_argument('--keep-line-breaks', action='store_true')
     parser.add_argument('--type')
     parser.add_argument('--title')
     parser.add_argument('--creator')
     parser.add_argument('--description')
     parser.add_argument('--publisher')
-    parser.add_argument('--date')
+    parser.add_argument('--date', default=datetime.datetime.today())
     parser.add_argument('--language')
-    parser.add_argument('--identifier')
+    parser.add_argument('--identifier', default=str(uuid.uuid4()))
 
     args = parser.parse_args()
 
