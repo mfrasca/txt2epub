@@ -19,6 +19,7 @@ import codecs
 import zipfile
 import tempfile
 from docutils.core import publish_string
+import re
 
 
 def encode_entities(text):
@@ -93,6 +94,15 @@ def main(destination, sources, **options):
         content = codecs.open(full, encoding='utf-8').read()
         if this_type == "rst":
             text = publish_string(content, writer_name="html")
+            pattern = re.compile('^(<html .*?) lang=".."(.*?>)$')
+            text_lines = text.split("\n")
+            matches = [pattern.match(l) for l in text_lines]
+            try:
+                (l, r) = [(l, r) for (l, r) in enumerate(matches) if r is not None][0]
+                text_lines[l] = ''.join(r.groups())
+                text = '\n'.join(text_lines)
+            except:
+                pass
         else:
             content = encode_entities(content)
             lines = content.split(split_on)
