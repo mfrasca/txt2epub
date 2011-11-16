@@ -2,3 +2,6 @@ python/*.pyc
 *~
 */*~
 */*/*~
+python/bin
+python/eggs
+python/develop-eggs

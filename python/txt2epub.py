@@ -20,6 +20,7 @@ import zipfile
 import tempfile
 from docutils.core import publish_string
 import re
+from shutil import copyfile
 
 
 def encode_entities(text):
@@ -89,7 +90,13 @@ def main(destination, sources, **options):
     else:
         template = env.get_template("item.html")
         split_on = '\n\n'
+    included = []
     for short, full, this_type in zip(names, sources, types):
+        if this_type == "png":
+            copyfile(full, tempdir + "/content/" + short + ".png")
+            included.append(short + ".png")
+            continue
+        
         info = {'title': short}
         content = codecs.open(full, encoding='utf-8').read()
         if this_type == "rst":
@@ -111,19 +118,21 @@ def main(destination, sources, **options):
         out = codecs.open(tempdir + "/content/" + short + ".html", "w", encoding='utf-8')
         out.write(text)
         out.close()
+        included.append(short + ".html")
 
     ## finally zip everything into the destination
     out = zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED)
     out.write(tempdir + "/mimetype", "mimetype", zipfile.ZIP_STORED)
     out.write(tempdir + "/META-INF/container.xml", "META-INF/container.xml", zipfile.ZIP_DEFLATED)
-    for name in ["00_content.opf", "00_stylesheet.css"] + [i + ".html" for i in names] + ["00_toc.ncx"]:
+    for name in ["00_content.opf", "00_stylesheet.css"] + included + ["00_toc.ncx"]:
         out.write(tempdir + "/content/" + name, "content/" + name, zipfile.ZIP_DEFLATED)
         
     out.close()
 
 
 if __name__ == '__main__':
-    import argparse, datetime, uuid
+    from datetime import datetime
+    import argparse, uuid
 
     parser = argparse.ArgumentParser(description='convert text files to epub document.')
     parser.add_argument('destination', type=str,
@@ -136,9 +145,9 @@ if __name__ == '__main__':
     parser.add_argument('--creator')
     parser.add_argument('--description')
     parser.add_argument('--publisher')
-    parser.add_argument('--date', default=datetime.datetime.today())
+    parser.add_argument('--date', default=datetime.date(datetime.today()))
     parser.add_argument('--language')
-    parser.add_argument('--identifier', default=str(uuid.uuid4()))
+    parser.add_argument('--identifier', default=str(uuid.uuid4()).replace('-', ''))
 
     args = parser.parse_args()
 
