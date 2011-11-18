@@ -2,6 +2,7 @@ python/*.pyc
 *~
 */*~
 */*/*~
+python/build
 python/bin
 python/eggs
 python/develop-eggs
