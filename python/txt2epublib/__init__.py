@@ -21,7 +21,6 @@ import tempfile
 from docutils.core import publish_string
 import re
 from shutil import copyfile
-import pkg_resources
 
 
 def encode_entities(text):
@@ -36,11 +35,16 @@ def main(destination, sources, **options):
     """translate the files to epub
     """
 
-    names = [os.path.basename(".".join(i.split('.')[:-1])).replace(" ", "_")
-             for i in sources]
-    types = [i.split('.')[-1].lower()
-             for i in sources]
-    options['names'] = names
+    fullnames = [os.path.basename(i).replace(" ", "_") 
+                 for i in sources]
+    sources = [{'name': ".".join(l.split('.')[:-1]),
+                'type': l.split('.')[-1].lower(),
+                'orig': orig,
+                'full': l,
+                }
+                for l, orig in zip(fullnames, sources)]
+    options['files'] = sources
+    options['spine'] = []
 
     tempdir = tempfile.mkdtemp()
     ## create directory structure
@@ -66,7 +70,50 @@ def main(destination, sources, **options):
     from jinja2 import Environment, PackageLoader
     env = Environment(loader=PackageLoader(__name__, "templates"))
 
-    ## start with content/00_content.opf
+    ## first we must convert each of the files and compute the resulting
+    ## full name, to be used everywhere else
+    if options['keep_line_breaks']:
+        template = env.get_template("item-br.html")
+        split_on = '\n'
+    else:
+        template = env.get_template("item.html")
+        split_on = '\n\n'
+    included = []
+    for item in sources:
+        if item['type'] in ["png", "jpg"]:
+            copyfile(item['orig'], tempdir + "/content/" + item['full'])
+            included.append(item['full'])
+            item['media_type'] = 'image/' + item['type']
+            continue
+
+        item['media_type'] = 'application/xhtml+xml'
+        info = {'title': item['name']}
+        content = codecs.open(item['orig'], encoding='utf-8').read()
+        if item['type'] == "rst":
+            text = publish_string(content, writer_name="html")
+            pattern = re.compile('^(<html .*?) lang=".."(.*?>)$')
+            text_lines = text.split("\n")
+            matches = [pattern.match(l) for l in text_lines]
+            try:
+                (l, r) = [(l, r) for (l, r) in enumerate(matches) if r is not None][0]
+                text_lines[l] = ''.join(r.groups())
+                text = '\n'.join(text_lines)
+            except:
+                pass
+        else:
+            content = encode_entities(content)
+            lines = content.split(split_on)
+            info['lines'] = lines
+            text = template.render(info)
+        item['full'] = item['name'] + ".html"
+        options['spine'].append(item)
+        out = codecs.open(tempdir + "/content/" + item['full'], 
+                          "w", encoding='utf-8')
+        out.write(text)
+        out.close()
+        included.append(item['full'])
+
+    ## now we can write the content/00_content.opf
     template = env.get_template("00_content.opf")
     out = file(tempdir + "/content/00_content.opf", "w")
     out.write(template.render(options))
@@ -83,43 +130,6 @@ def main(destination, sources, **options):
     out = file(tempdir + "/content/00_stylesheet.css", "w")
     out.write(template.render(options))
     out.close()
-
-    ## then convert each of the files
-    if options['keep_line_breaks']:
-        template = env.get_template("item-br.html")
-        split_on = '\n'
-    else:
-        template = env.get_template("item.html")
-        split_on = '\n\n'
-    included = []
-    for short, full, this_type in zip(names, sources, types):
-        if this_type == "png":
-            copyfile(full, tempdir + "/content/" + short + ".png")
-            included.append(short + ".png")
-            continue
-        
-        info = {'title': short}
-        content = codecs.open(full, encoding='utf-8').read()
-        if this_type == "rst":
-            text = publish_string(content, writer_name="html")
-            pattern = re.compile('^(<html .*?) lang=".."(.*?>)$')
-            text_lines = text.split("\n")
-            matches = [pattern.match(l) for l in text_lines]
-            try:
-                (l, r) = [(l, r) for (l, r) in enumerate(matches) if r is not None][0]
-                text_lines[l] = ''.join(r.groups())
-                text = '\n'.join(text_lines)
-            except:
-                pass
-        else:
-            content = encode_entities(content)
-            lines = content.split(split_on)
-            info['lines'] = lines
-            text = template.render(info)
-        out = codecs.open(tempdir + "/content/" + short + ".html", "w", encoding='utf-8')
-        out.write(text)
-        out.close()
-        included.append(short + ".html")
 
     ## finally zip everything into the destination
     out = zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED)

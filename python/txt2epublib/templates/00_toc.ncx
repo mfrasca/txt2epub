@@ -12,7 +12,7 @@
   <docAuthor>
     <text>{{ author }}</text>
   </docAuthor>
-  <navMap>{% for i in range(names|count) %}
-    <navPoint playOrder="{{ i }}" id="{{ 'navpoint%04d' % i }}" class="{{ 'navpoint-level-%04d' % i }}"> <navLabel> <text>{{ names[i] }}</text> </navLabel> <content src="{{ names[i] }}.html"/> </navPoint>{% endfor %}
+  <navMap>{% for i in range(spine|count) %}
+    <navPoint playOrder="{{ i + 1 }}" id="{{ 'navpoint%04d' % i }}" class="{{ 'navpoint-level-%04d' % i }}"><navLabel><text>{{ spine[i].name }}</text></navLabel><content src="{{ spine[i].full }}"/></navPoint>{% endfor %}
   </navMap>
 </ncx>

@@ -12,12 +12,12 @@
     <dc:identifier id="bookid">{{ identifier }}</dc:identifier>
   </metadata>
   <manifest>
-    <item href="00_stylesheet.css" id="css" media-type="text/css"/>{% for name in names %}
-    <item href="{{ name }}.html" id="{{ name }}" media-type="application/xhtml+xml"/>{% endfor %}
+    <item href="00_stylesheet.css" id="css" media-type="text/css"/>{% for item in files %}
+    <item href="{{ item.full }}" id="{{ item.name }}" media-type="{{ item.media_type }}"/>{% endfor %}
     <item href="00_toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
   </manifest>
-  <spine toc="ncx">{% for name in names %}
-    <itemref idref="{{ name }}"/>{% endfor %}
+  <spine toc="ncx">{% for item in spine %}
+    <itemref idref="{{ item.name }}"/>{% endfor %}
   </spine>
   <guide>
   </guide>
