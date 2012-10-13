@@ -27,13 +27,15 @@ def encode_entities(text):
     return text.replace(
         "&", "&amp;").replace(
         ">", "&gt;").replace(
-        "<", "&lt;")
+        "<", "&lt;").replace(
+        r"\_", "&#95;")
 
 
 class translate_markup_functor(object):
     def __init__(self):
         self.superscript = re.compile(r'^(.*)^{(.*?)}(.*)$', re.DOTALL)
         self.subscript = re.compile(r'^(.*)_{(.*?)}(.*)$', re.DOTALL)
+        self.bold = re.compile(r'^(.*)__(.*?)__(.*)$', re.DOTALL)
         self.italics = re.compile(r'^(.*)_(.*?)_(.*)$', re.DOTALL)
 
     def __call__(self, text):
@@ -45,20 +47,15 @@ class translate_markup_functor(object):
         text = text.replace("\014", '<br style="page-break-after:always"/>')
         text = text.replace("\n  ", '\n<br/>')
 
-        match = self.superscript.match(text)
-        while match:
-            text = "%s<sup>%s</sup>%s" % match.groups()
-            match = self.superscript.match(text)
-
-        match = self.subscript.match(text)
-        while match:
-            text = "%s<sub>%s</sub>%s" % match.groups()
-            match = self.subscript.match(text)
-
-        match = self.italics.match(text)
-        while match:
-            text = "%s<em>%s</em>%s" % match.groups()
-            match = self.italics.match(text)
+        for name, rule in [("sup", self.superscript),
+                           ("sub", self.subscript),
+                           ("bold", self.bold),
+                           ("em", self.italics),
+                           ]:
+            match = rule.match(text)
+            while match:
+                text = ("%s<" + name + ">%s</" + name + ">%s") % match.groups()
+                match = rule.match(text)
 
         return text
 
