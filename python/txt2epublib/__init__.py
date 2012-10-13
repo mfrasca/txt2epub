@@ -27,9 +27,42 @@ def encode_entities(text):
     return text.replace(
         "&", "&amp;").replace(
         ">", "&gt;").replace(
-        "<", "&lt;").replace(
-        "\014", "")
+        "<", "&lt;")
 
+
+class translate_markup_functor(object):
+    def __init__(self):
+        self.superscript = re.compile(r'^(.*)^{(.*?)}(.*)$', re.DOTALL)
+        self.subscript = re.compile(r'^(.*)_{(.*?)}(.*)$', re.DOTALL)
+        self.italics = re.compile(r'^(.*)_(.*?)_(.*)$', re.DOTALL)
+
+    def __call__(self, text):
+        """
+        """
+
+        text = text.replace("---", "&#8212;")
+        text = text.replace("...", "&#8230;")
+        text = text.replace("\014", '<br style="page-break-after:always"/>')
+        text = text.replace("\n  ", '\n<br/>')
+
+        match = self.superscript.match(text)
+        while match:
+            text = "%s<sup>%s</sup>%s" % match.groups()
+            match = self.superscript.match(text)
+
+        match = self.subscript.match(text)
+        while match:
+            text = "%s<sub>%s</sub>%s" % match.groups()
+            match = self.subscript.match(text)
+
+        match = self.italics.match(text)
+        while match:
+            text = "%s<em>%s</em>%s" % match.groups()
+            match = self.italics.match(text)
+
+        return text
+
+translate_markup = translate_markup_functor()
 
 def main(destination, sources, **options):
     """translate the files to epub
@@ -102,6 +135,7 @@ def main(destination, sources, **options):
                 pass
         else:
             content = encode_entities(content)
+            content = translate_markup(content)
             lines = content.split(split_on)
             info['lines'] = lines
             text = template.render(info)

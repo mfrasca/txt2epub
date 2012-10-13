@@ -6,6 +6,7 @@ h1,h2,h3,h4 {
 }
 p {
     font-family: Georgia,  "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+    text-indent: 10%;
 }
 img {
     display: block; text-align: center; margin: 1em auto;
