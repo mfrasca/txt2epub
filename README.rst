@@ -4,6 +4,12 @@ yet another txt2epub converter
 the intention of this program is to allow one create a epub file from
 a bunch of text files.
 
+Usage
+-----
+
+* Install `python setup.py install --user`. 
+* `txt2epub --keep-line-breaks output.epub input.txt`
+
 why another converter?
 ----------------------
 
