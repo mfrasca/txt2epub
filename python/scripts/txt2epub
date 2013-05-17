@@ -27,7 +27,7 @@ if __name__ == '__main__':
                         help='the name of the epub document')
     parser.add_argument('sources', type=str, nargs='+',
                         help='the text files to include in the epub')
-    parser.add_argument('--keep-line-breaks', action='store_true')
+    parser.add_argument('--keep-line-breaks', action='store_true', default=True)
     parser.add_argument('--type')
     parser.add_argument('--title')
     parser.add_argument('--creator')
