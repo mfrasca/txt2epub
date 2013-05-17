@@ -7,8 +7,8 @@ a bunch of text files.
 Usage
 -----
 
-* Install `python setup.py install --user`. 
-* `txt2epub --keep-line-breaks output.epub input.txt`
+* Install: ``python setup.py install --user``. 
+* Execute: ``txt2epub --keep-line-breaks output.epub input.txt``
 
 why another converter?
 ----------------------
