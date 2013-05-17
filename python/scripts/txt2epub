@@ -14,8 +14,11 @@
 #
 # copyright 2011 Mario Frasca
 
-
 if __name__ == '__main__':
+    import sys
+    from os import path
+    sys.path.append(path.dirname(path.dirname(__file__)))
+
     from datetime import datetime
     import argparse, uuid
 
