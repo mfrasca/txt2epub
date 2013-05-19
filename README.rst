@@ -1,14 +1,21 @@
 yet another txt2epub converter
 ==============================
 
-the intention of this program is to allow one create a epub file from
-a bunch of text files.
+The script to create an epub file from a bunch of text files.
 
 Usage
 -----
 
-* Install `python setup.py install --user`. 
-* `txt2epub --keep-line-breaks output.epub input.txt`
+* Install: ``python setup.py install --user``. 
+* Execute: ``txt2epub --keep-line-breaks output.epub input.txt``
+
+For more options, please see ``txt2epub -h``. 
+
+Dependency
+----------
+
+* ``python``.
+* ``jinja2``: for rendering output from epub template. 
 
 why another converter?
 ----------------------
@@ -27,27 +34,26 @@ I thought I would give it a try here.
 
 later on I found some more libraries, but I was far enough in the process that I thought I would finish it anyway!
 
-what this is based on
----------------------
-
-* python as programming language
-* jinja2 for producing output
-
 the way it works
 ----------------
 
-* invoke it with two parameters and some options
- - first parameter is the directory holding the files
- - second comes the destination epub file
 * read all files from the input directory
-* produce the `mimetype`
- - this is hard coded
-* produce the `META_INF/container.xml`
- - it points always at `content/00_content.opf`
-* produce the `content/content.opf`
- - metadata: if you pass --options, they go here
- - manifest: the files in the directory
- - spine: again the files in the directory
- - guide: empty (I would not know what to put here)
+
+* produce the ``mimetype``
+
+  - this is hard coded
+
+* produce the ``META_INF/container.xml``
+
+  - it points always at ``content/00_content.opf``
+
+* produce the ``content/content.opf``
+
+  - metadata: if you pass --options, they go here
+  - manifest: the files in the directory
+  - spine: again the files in the directory
+  - guide: empty (I would not know what to put here)
+
 * convert the documents to valid html
+
 * zip everything in the correct order
