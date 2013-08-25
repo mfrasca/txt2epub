@@ -17,6 +17,12 @@ Dependency
 * ``python``.
 * ``jinja2``: for rendering output from epub template. 
 
+Usage
+-----
+
+* Install: ``python setup.py install --user``. 
+* Execute: ``txt2epub --keep-line-breaks output.epub input.txt``
+
 why another converter?
 ----------------------
 
