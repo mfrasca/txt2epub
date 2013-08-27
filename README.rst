@@ -1,7 +1,7 @@
 yet another txt2epub converter
 ==============================
 
-The script to create an epub file from a bunch of text files.
+txt2epub creates an epub file from a bunch of text files.
 
 Usage
 -----
