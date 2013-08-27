@@ -63,3 +63,32 @@ the way it works
 * convert the documents to valid html
 
 * zip everything in the correct order
+
+some examples
+-------------
+
+the script works on all simple input and attempts to do something reasonable with more complex cases. 
+the maintainers of this program will be glad to consider your remarks and include your patches!
+
+here we have a look at some examples.
+
+just text files
+~~~~~~~~~~~~~~~
+
+- put all files in one directory,
+- make sure that each chapter of your work is in its own file,
+- you are satisfied with the lexicographic ordering of the chapters,
+
+* execute: ``txt2epub output.epub *.txt``
+* result: your epub will have an index naming the input files
+
+
+rst files
+~~~~~~~~~
+
+same as for text files, with some words of warning:
+
+- not all rst is supported, if the script crashes on your input please open an issue here!
+- files must have extension ``.rst``, sorry,
+- option ``--type rst`` has no effect,
+- the structure of the rst files is not reflected in the index, the index is based on the input files anyway.
