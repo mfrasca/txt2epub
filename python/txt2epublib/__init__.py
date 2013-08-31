@@ -65,6 +65,11 @@ def main(destination, sources, **options):
     """translate the files to epub
     """
 
+    suggested_options = ['title', 'creator', 'identifier']
+    missing_suggested = [k for k in suggested_options if options.get(k) is None]
+    if missing_suggested:
+        print 'missing suggested options: ', ', '.join(missing_suggested)
+
     fullnames = [os.path.basename(i).replace(" ", "_") 
                  for i in sources]
     sources = [{'name': ".".join(l.split('.')[:-1]),
