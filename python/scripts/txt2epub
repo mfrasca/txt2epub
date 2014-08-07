@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--nokeep-line-breaks', action='store_false', dest='keep_line_breaks')
     parser.add_argument('--type')
     parser.add_argument('--title')
+    parser.add_argument('--author')
     parser.add_argument('--creator')
     parser.add_argument('--description')
     parser.add_argument('--publisher')

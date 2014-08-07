@@ -18,7 +18,7 @@ import os, os.path
 import codecs
 import zipfile
 import tempfile
-from docutils.core import publish_string
+from docutils.core import publish_string, publish_doctree
 import re
 from shutil import copyfile
 
@@ -65,7 +65,7 @@ def main(destination, sources, **options):
     """translate the files to epub
     """
 
-    suggested_options = ['title', 'creator', 'identifier']
+    suggested_options = ['title', 'author', 'identifier']
     missing_suggested = [k for k in suggested_options if options.get(k) is None]
     if missing_suggested:
         print 'missing suggested options: ', ', '.join(missing_suggested)
@@ -80,6 +80,7 @@ def main(destination, sources, **options):
                 for l, orig in zip(fullnames, sources)]
     options['files'] = sources
     options['spine'] = []
+    options['sections'] = []
 
     tempdir = tempfile.mkdtemp()
     ## create directory structure
@@ -140,6 +141,14 @@ def main(destination, sources, **options):
                 pass
             with file(tempdir + "/content/" + item['full'], "w") as out:
                 out.write(text)
+
+            ## now include the navigation points
+            doc = publish_doctree(content)
+            for section in doc:
+                item_section = {}
+                item_section['full'] = '%s#%s' % (item['full'], section.attributes['ids'][0])
+                item_section['name'] = section.children[0].astext()
+                options['sections'].append(item_section)
         else:
             content = encode_entities(content)
             content = translate_markup(content)
@@ -149,9 +158,13 @@ def main(destination, sources, **options):
             with codecs.open(tempdir + "/content/" + item['full'], 
                              "w", 'utf-8') as out:
                 out.write(text)
+            options['sections'].append(item)
         options['spine'].append(item)
         included.append(item['full'])
 
+    ## images given after the `--images` option are included in the zip
+    ## file, but it is left to the writer the task to refer them to from the
+    ## text
     for item in options['images']:
         content = open(item).read()
         shortname = os.path.basename(item)
