@@ -124,48 +124,55 @@ def main(destination, sources, **options):
         item['media_type'] = 'application/xhtml+xml'
         info = {'title': item['name']}
         content = codecs.open(item['orig'], encoding='utf-8').read()
+        item['full'] = item['name'] + ".html"
         if item['type'] == "rst":
-            text = publish_string(content, writer_name="html")
+            overrides = {'input_encoding': 'utf-8',
+                         'output_encoding': 'utf-8'}
+            text = publish_string(content, writer_name="html", settings_overrides=overrides)
             pattern = re.compile('^(<html .*?) lang=".."(.*?>)$')
             text_lines = text.split("\n")
             matches = [pattern.match(l) for l in text_lines]
             try:
                 (l, r) = [(l, r) for (l, r) in enumerate(matches) if r is not None][0]
-                text_lines[l] = ''.join(r.groups())
-                text = '\n'.join(text_lines)
+                text_lines[l] = u''.join(r.groups())
+                text = u'\n'.join(text_lines)
             except:
                 pass
+            with file(tempdir + "/content/" + item['full'], "w") as out:
+                out.write(text)
         else:
             content = encode_entities(content)
             content = translate_markup(content)
             lines = content.split(split_on)
             info['lines'] = lines
             text = template.render(info)
-        item['full'] = item['name'] + ".html"
+            with codecs.open(tempdir + "/content/" + item['full'], 
+                             "w", 'utf-8') as out:
+                out.write(text)
         options['spine'].append(item)
-        out = codecs.open(tempdir + "/content/" + item['full'], 
-                          "w", encoding='utf-8')
-        out.write(text)
-        out.close()
         included.append(item['full'])
+
+    for item in options['images']:
+        content = open(item).read()
+        shortname = os.path.basename(item)
+        with file(tempdir + "/content/" + shortname, "w") as out:
+            out.write(content)
+        included.append(shortname)
 
     ## now we can write the content/00_content.opf
     template = env.get_template("00_content.opf")
-    out = file(tempdir + "/content/00_content.opf", "w")
-    out.write(template.render(options))
-    out.close()
+    with file(tempdir + "/content/00_content.opf", "w") as out:
+        out.write(template.render(options))
 
     ## then content/00_toc.ncx
     template = env.get_template("00_toc.ncx")
-    out = file(tempdir + "/content/00_toc.ncx", "w")
-    out.write(template.render(options))
-    out.close()
+    with file(tempdir + "/content/00_toc.ncx", "w") as out:
+        out.write(template.render(options))
 
     ## and the style
     template = env.get_template("00_stylesheet.css")
-    out = file(tempdir + "/content/00_stylesheet.css", "w")
-    out.write(template.render(options))
-    out.close()
+    with file(tempdir + "/content/00_stylesheet.css", "w") as out:
+        out.write(template.render(options))
 
     ## finally zip everything into the destination
     out = zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED)
