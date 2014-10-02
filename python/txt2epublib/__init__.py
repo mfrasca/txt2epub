@@ -146,7 +146,11 @@ def main(destination, sources, **options):
             doc = publish_doctree(content)
             for section in doc:
                 item_section = {}
-                item_section['full'] = '%s#%s' % (item['full'], section.attributes['ids'][0])
+                ids = section.attributes['ids']
+                if ids:
+                    item_section['full'] = '%s#%s' % (item['full'], section.attributes['ids'][0])
+                else:
+                    item_section['full'] = '%s' % (item['full'])
                 item_section['name'] = section.children[0].astext()
                 options['sections'].append(item_section)
         else:
@@ -165,10 +169,10 @@ def main(destination, sources, **options):
     ## images given after the `--images` option are included in the zip
     ## file, but it is left to the writer the task to refer them to from the
     ## text
-    for item in options['images']:
+    for item in options['images'] or []:  # could be None
         content = open(item).read()
         shortname = os.path.basename(item)
-        with file(tempdir + "/content/" + shortname, "w") as out:
+        with codecs.open(tempdir + "/content/" + shortname, "w", "utf-8") as out:
             out.write(content)
         included.append(shortname)
 
@@ -179,7 +183,7 @@ def main(destination, sources, **options):
 
     ## then content/00_toc.ncx
     template = env.get_template("00_toc.ncx")
-    with file(tempdir + "/content/00_toc.ncx", "w") as out:
+    with codecs.open(tempdir + "/content/00_toc.ncx", "w", "utf-8") as out:
         out.write(template.render(options))
 
     ## and the style
