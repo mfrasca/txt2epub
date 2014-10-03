@@ -145,6 +145,8 @@ def main(destination, sources, **options):
             ## now include the navigation points
             doc = publish_doctree(content)
             for section in doc:
+                if section.tagname not in ['section', 'title']:
+                    continue
                 item_section = {}
                 ids = section.attributes['ids']
                 if ids:
