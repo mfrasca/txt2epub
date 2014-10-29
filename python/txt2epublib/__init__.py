@@ -180,7 +180,7 @@ def main(destination, sources, **options):
 
     ## now we can write the content/00_content.opf
     template = env.get_template("00_content.opf")
-    with file(tempdir + "/content/00_content.opf", "w") as out:
+    with codecs.open(tempdir + "/content/00_content.opf", "w", "utf-8") as out:
         out.write(template.render(options))
 
     ## then content/00_toc.ncx
