@@ -14,7 +14,7 @@
 #
 # copyright 2011 Mario Frasca
 
-import os, os.path
+import os.path
 import codecs
 import zipfile
 import tempfile
@@ -66,18 +66,19 @@ def main(destination, sources, **options):
     """
 
     suggested_options = ['title', 'author', 'identifier']
-    missing_suggested = [k for k in suggested_options if options.get(k) is None]
+    missing_suggested = [k for k in suggested_options
+                         if options.get(k) is None]
     if missing_suggested:
         print 'missing suggested options: ', ', '.join(missing_suggested)
 
-    fullnames = [os.path.basename(i).replace(" ", "_") 
+    fullnames = [os.path.basename(i).replace(" ", "_")
                  for i in sources]
     sources = [{'name': ".".join(l.split('.')[:-1]),
                 'type': l.split('.')[-1].lower(),
                 'orig': orig,
                 'full': l,
                 }
-                for l, orig in zip(fullnames, sources)]
+               for l, orig in zip(fullnames, sources)]
     options['files'] = sources
     options['spine'] = []
     options['sections'] = []
@@ -129,12 +130,14 @@ def main(destination, sources, **options):
         if item['type'] == "rst":
             overrides = {'input_encoding': 'utf-8',
                          'output_encoding': 'utf-8'}
-            text = publish_string(content, writer_name="html", settings_overrides=overrides)
+            text = publish_string(
+                content, writer_name="html", settings_overrides=overrides)
             pattern = re.compile('^(<html .*?) lang=".."(.*?>)$')
             text_lines = text.split("\n")
             matches = [pattern.match(l) for l in text_lines]
             try:
-                (l, r) = [(l, r) for (l, r) in enumerate(matches) if r is not None][0]
+                (l, r) = [(l, r) for (l, r) in enumerate(matches)
+                          if r is not None][0]
                 text_lines[l] = u''.join(r.groups())
                 text = u'\n'.join(text_lines)
             except:
@@ -161,7 +164,7 @@ def main(destination, sources, **options):
             lines = content.split(split_on)
             info['lines'] = lines
             text = template.render(info)
-            with codecs.open(tempdir + "/content/" + item['full'], 
+            with codecs.open(tempdir + "/content/" + item['full'],
                              "w", 'utf-8') as out:
                 out.write(text)
             options['sections'].append(item)
@@ -174,23 +177,27 @@ def main(destination, sources, **options):
     for item in options['images'] or []:  # could be None
         content = open(item).read()
         shortname = os.path.basename(item)
-        with codecs.open(tempdir + "/content/" + shortname, "w", "utf-8") as out:
+        with codecs.open(tempdir + "/content/" + shortname, "w", "utf-8"
+                         ) as out:
             out.write(content)
         included.append(shortname)
 
     ## now we can write the content/00_content.opf
     template = env.get_template("00_content.opf")
-    with codecs.open(tempdir + "/content/00_content.opf", "w", "utf-8") as out:
+    with codecs.open(tempdir + "/content/00_content.opf", "w", "utf-8"
+                     ) as out:
         out.write(template.render(options))
 
     ## then content/00_toc.ncx
     template = env.get_template("00_toc.ncx")
-    with codecs.open(tempdir + "/content/00_toc.ncx", "w", "utf-8") as out:
+    with codecs.open(tempdir + "/content/00_toc.ncx", "w", "utf-8"
+                     ) as out:
         out.write(template.render(options))
 
     ## and the style
     template = env.get_template("00_stylesheet.css")
-    with file(tempdir + "/content/00_stylesheet.css", "w") as out:
+    with open(tempdir + "/content/00_stylesheet.css", "w"
+              ) as out:
         out.write(template.render(options))
 
     ## finally zip everything into the destination
@@ -199,5 +206,5 @@ def main(destination, sources, **options):
     out.write(tempdir + "/META-INF/container.xml", "META-INF/container.xml", zipfile.ZIP_DEFLATED)
     for name in ["00_content.opf", "00_stylesheet.css"] + included + ["00_toc.ncx"]:
         out.write(tempdir + "/content/" + name, "content/" + name, zipfile.ZIP_DEFLATED)
-        
+
     out.close()

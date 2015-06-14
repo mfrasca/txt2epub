@@ -7,3 +7,5 @@ python/build
 python/bin
 python/eggs
 python/develop-eggs
+python/dist/
+python/txt2epub.egg-info/
