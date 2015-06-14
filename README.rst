@@ -90,7 +90,6 @@ same as for text files, with some words of warning:
 
 - not all rst is supported, if the script crashes on your input please open an issue here!
 - files must have extension ``.rst``, sorry,
-- option ``--type rst`` has no effect,
-- the structure of the rst files is not reflected in the index, the index is based on the input files anyway.
+- you can have a single rst file, the index is based on its headings.
 
 * execute: ``txt2epub output.epub *.rst``
