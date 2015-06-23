@@ -1,6 +1,8 @@
 yet another txt2epub converter
 ==============================
 
+.. image:: https://travis-ci.org/mfrasca/txt2epub.svg?branch=master
+
 txt2epub creates an epub file from a bunch of text files.
 
 Usage
