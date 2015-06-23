@@ -1,0 +1,19 @@
+language: python
+
+before_install: 
+    # Environment setup
+    - export VIRT_ROOT=/home/travis/virtualenv/python$TRAVIS_PYTHON_VERSION
+    - export PKG_CONFIG_PATH=$VIRT_ROOT/lib/pkgconfig
+    - pip install pip --upgrade
+
+    # files are in `python` directory
+    - cd python
+
+    # build before install
+    - python setup.py -q build
+
+install:
+    - python setup.py -q install
+
+script:
+    - python setup.py test
